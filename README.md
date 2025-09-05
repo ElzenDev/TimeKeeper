@@ -3,8 +3,8 @@ A Python desktop application that tracks your computer's apps usage
 
 ## Current Features
 - [x] Dectect running processes
-- [] Track usage Duration
-- [] Store data in SQLite
+-  [ ] Track usage Duration
+- [ ] Store data in SQLite
 
 ## Quick Start
 1. Clone this repo
