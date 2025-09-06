@@ -1,3 +1,5 @@
+# Development Log - TimeKeeper, the Python app usage monitor
+
 ## 2025-09-5 - *Project Setup*
 - [x] Done
     - [x] Created Github repository
@@ -15,7 +17,9 @@
 
 ## 2025-09-06 - *Filter*
 - [x] Done
-    - [x] Filter out most of the system processses
+    - [x] Filter out some of the system processses
+    - [x] Refine Filter
 
 - [ ] To_do
+    - [ ] Differentiate between background and active processes
     - [ ] Set up SqLite db
