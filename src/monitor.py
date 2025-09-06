@@ -69,7 +69,14 @@ class AppMonitor:
                 return True
             else: ## Backgorund processes
                 return False
-            
+    
+        # To-do : Modify this function or create another to return the types of the apps
+        # As for now, True = App, False = Not an App
+        # However, I woukd like to return types like 'System App', 'Background Process', 'User App' etc.
+        # This will help in better categorization and reporting of the apps
+        # Then we can filter based on type in the main logic
+
+
         return True
         
         
