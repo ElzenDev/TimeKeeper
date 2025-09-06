@@ -3,13 +3,13 @@ A Python desktop application that tracks your computer's apps usage
 
 ## Current Features
 - [x] Dectect running processes
--  [ ] Track usage Duration
+-  [x] Track usage Duration
 - [ ] Store data in SQLite
 
 ## Quick Start
 1. Clone this repo
 2. Install dependecies: `pip install -r requirements.txt`
-3. Run :  `python src/__init__.py`
+3. Run :  `python src/monitor.py`
 
 ## Development Status
 Currently in early development.
