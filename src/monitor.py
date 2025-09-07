@@ -19,7 +19,7 @@ class AppMonitor:
         for process in psutil.process_iter(['pid', 'username', 'name', 'create_time', 'exe', 'status']):
             try:  
                 # Filter user apps
-                if self.app_filter(process.info['name'], process.info['username'], process.info['exe']): 
+                if self.app_filter(process): 
                     apps.append({
                         'pid': process.info['pid'],
                         'name': process.info['name'],
@@ -40,36 +40,52 @@ class AppMonitor:
         return apps.sort(key=lambda x: int(x.get('usage_time')), reverse=True)
     
     ## A simple function to filter out system processes
-    def app_filter(self, process_name: str, user_name: str, exe: str) -> bool:
+    def app_filter(self,process:dict) -> bool:
+        process_name = process.info['name']
+        user_name = process.info['username']
+        exe = process.info['exe']
+        
         
         # A list of common system processes to ignore
         system_processes = ['System', 'System Idle Process', 'Registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
-                       'services.exe', 'lsass.exe', 'svchost.exe', 'explorer.exe',
-                       'spoolsv.exe', 'taskhostw.exe', 'dwm.exe' ,'SearchUI.exe',
+                      'services.exe', 'lsass.exe', 'svchost.exe', 'explorer.exe',
+                      'spoolsv.exe', 'taskhostw.exe', 'dwm.exe' ,'SearchUI.exe',
                        'RuntimeBroker.exe', 'sihost.exe', 'ctfmon.exe', 'conhost.exe',
                        'ApplicationFrameHost.exe0','winlogon.exe', 'fontdrvhost.exe', 'WmiPrvSE.exe', 'SecurityHealthService.exe'
                        , 'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe']
         
+        
         ## Filter out system processes in the list, processes with very short names and processes running under system accounts
         if process_name in system_processes or len(process_name) <3 or 'service' in process_name.lower() or user_name in ['SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE', None]:
             return False
-
+        
         # Filter out processes running from Windows directories
         if exe and ('Windows' in exe or 'System32' in exe or 'SysWOW64' in exe or 'EdgeWebView' in exe):
             return False
+        ## Temporary files and local system files  
+        if  exe and ('temp' in exe.lower() or 'local' in exe.lower()):
+            return False      
         
-         ## Filter processes running from Program Files directories (common for system and background apps)
-        if exe and ( 'Program Files' in exe or 'Program Files (x86)' in exe):
-            return True
+       ## Check if the process has a parent or children processes
+        process_parent = process.parent()
+        process_children = process.children()
+        ## We assume parent processes are apps, children are not
+        if process_children:
+            return True 
+        if process_parent:
+            return False
         
         # Filter processes that aren't in typical directories for user-installed apps
         current_user = os.getenv('USERNAME', '').lower()
         if  current_user in user_name:
-            if exe and ('appdata' in exe.lower() or 'users' in exe.lower()): ## or exe.startswith('C:\\Program Files') or exe.startswith('C:\\Program Files (x86)')
+            if exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe): ## or exe.startswith('C:\\Program Files') or exe.startswith('C:\\Program Files (x86)')
                 return True
             else: ## Backgorund processes
                 return False
-    
+                
+        
+        ## If nothing matches, we assume it's an app
+        
         # To-do : Modify this function or create another to return the types of the apps
         # As for now, True = App, False = Not an App
         # However, I woukd like to return types like 'System App', 'Background Process', 'User App' etc.
@@ -104,10 +120,10 @@ class AppMonitor:
         for app in active_apps[:50]:  
            # format usage time as Hours:Minutes:Seconds
             usage_time_str = f"{app['usage_time']//3600}h:{(app['usage_time']%3600)//60}m:{app['usage_time']%60}s" 
-            app_info = f"{app['name']} (PID: {app['pid']}, STATUS: {app['status']}, Usage_time: {usage_time_str})"
+            app_info = f"{app['name']} (PID: {app['pid']}, STATUS: {app['status']}, Usage_time: {usage_time_str}, PATH: {app['executable_path']})"
             
             # Highlight the top active app
-            if app in active_apps[:5]:
+            if app in active_apps[:1]:
                 print(f"*** TOP Active APP: {app_info} ***")
                 
             else:
