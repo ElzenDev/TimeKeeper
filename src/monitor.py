@@ -44,15 +44,14 @@ class AppMonitor:
         process_name = process.info['name']
         user_name = process.info['username']
         exe = process.info['exe']
-        
-        
+
         # A list of common system processes to ignore
         system_processes = ['System', 'System Idle Process', 'Registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
                       'services.exe', 'lsass.exe', 'svchost.exe', 'explorer.exe',
                       'spoolsv.exe', 'taskhostw.exe', 'dwm.exe' ,'SearchUI.exe',
                        'RuntimeBroker.exe', 'sihost.exe', 'ctfmon.exe', 'conhost.exe',
                        'ApplicationFrameHost.exe0','winlogon.exe', 'fontdrvhost.exe', 'WmiPrvSE.exe', 'SecurityHealthService.exe'
-                       , 'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe']
+                       , 'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe', 'esrv.exe']
         
         
         ## Filter out system processes in the list, processes with very short names and processes running under system accounts
@@ -62,28 +61,30 @@ class AppMonitor:
         # Filter out processes running from Windows directories
         if exe and ('Windows' in exe or 'System32' in exe or 'SysWOW64' in exe or 'EdgeWebView' in exe):
             return False
-        ## Temporary files and local system files  
-        if  exe and ('temp' in exe.lower() or 'local' in exe.lower()):
-            return False      
         
-       ## Check if the process has a parent or children processes
-        process_parent = process.parent()
-        process_children = process.children()
-        ## We assume parent processes are apps, children are not
-        if process_children:
-            return True 
-        if process_parent:
-            return False
         
+    
         # Filter processes that aren't in typical directories for user-installed apps
         current_user = os.getenv('USERNAME', '').lower()
-        if  current_user in user_name:
-            if exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe): ## or exe.startswith('C:\\Program Files') or exe.startswith('C:\\Program Files (x86)')
-                return True
-            else: ## Backgorund processes
-                return False
-                
         
+        if user_name and (current_user in user_name or exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe)):
+            
+            # Check if the process has a parent or children processes
+            process_parent = psutil.Process(process.info['pid']).parent()
+            if process_parent:
+                print("Process Parent:", process_parent.name())
+                return False
+            
+            process_children = psutil.Process(process.info['pid']).children()
+            if process_children:
+                print(f"User App Found: {process_name} by {user_name} at {exe}")
+                return True
+            
+            
+                
+        ## Backgorund processes
+            return False
+    
         ## If nothing matches, we assume it's an app
         
         # To-do : Modify this function or create another to return the types of the apps
@@ -92,11 +93,8 @@ class AppMonitor:
         # This will help in better categorization and reporting of the apps
         # Then we can filter based on type in the main logic
 
+        
 
-        return True
-        
-        
-    
     def start_monitoring(self):
         print("Starting system monitor...")
         try:
@@ -120,11 +118,11 @@ class AppMonitor:
         for app in active_apps[:50]:  
            # format usage time as Hours:Minutes:Seconds
             usage_time_str = f"{app['usage_time']//3600}h:{(app['usage_time']%3600)//60}m:{app['usage_time']%60}s" 
-            app_info = f"{app['name']} (PID: {app['pid']}, STATUS: {app['status']}, Usage_time: {usage_time_str}, PATH: {app['executable_path']})"
+            app_info = f"{app['name']} (PID: {app['pid']}, STATUS: {app['status']}, Usage_time: {usage_time_str})"
             
             # Highlight the top active app
             if app in active_apps[:1]:
-                print(f"*** TOP Active APP: {app_info} ***")
+                print(f"TOP Active APP:{app_info}")
                 
             else:
                 # Print app details normally
