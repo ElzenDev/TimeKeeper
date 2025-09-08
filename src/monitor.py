@@ -61,8 +61,6 @@ class AppMonitor:
         # Filter out processes running from Windows directories
         if exe and ('Windows' in exe or 'System32' in exe or 'SysWOW64' in exe or 'EdgeWebView' in exe):
             return False
-        
-        
     
         # Filter processes that aren't in typical directories for user-installed apps
         current_user = os.getenv('USERNAME', '').lower()
