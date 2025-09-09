@@ -1,7 +1,7 @@
 import psutil, os
+from typing import List, Dict, Any
 
-
-class AppFilter:
+class ProcessFilter:
     def __init__(self):
         self.system_processes = ['System', 'System Idle Process', 'Registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
                     'services.exe', 'lsass.exe', 'svchost.exe', 'explorer.exe',
@@ -9,13 +9,17 @@ class AppFilter:
                     'RuntimeBroker.exe', 'sihost.exe', 'ctfmon.exe', 'conhost.exe',
                     'ApplicationFrameHost.exe0','winlogon.exe', 'fontdrvhost.exe', 'WmiPrvSE.exe', 'SecurityHealthService.exe'
                     ,'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe', 'esrv.exe']
-    def filter_for_apps(self, processes:list[dict]):
+    
+    def filter_for_apps(self, processes:List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        apps_list = []
+
+        # Start analyzing the processes in the given processes's list
         for proc in processes:
             process_category ='Unknow'
-            process_name = proc.info['name']
-            user_name = proc.info['username']
-            exe = proc.info['exe']
-            pid = proc.info['pid']
+            process_name     = proc['name']
+            user_name        = proc['username']
+            exe              = proc['path']
+            pid              = proc['pid']
 
             ## Filter out system processes in the list, processes with very short names and processes running under system accounts
             if process_name in self.system_processes or len(process_name) <3 or 'service' in process_name.lower() or user_name in ['SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE', None]:
@@ -39,8 +43,7 @@ class AppFilter:
                 if process_children:
                     print(f"User App Found: {process_name} by {user_name} at {exe}")
                     process_category = 'user_app'
-            
-            # Return only User Apps
-            if process_category == 'user_app':
-                return proc
-        
+
+            # Append the process to proceeses's list if it is classified as an app
+            if process_category == 'user_app': apps_list.append(proc)
+        return apps_list

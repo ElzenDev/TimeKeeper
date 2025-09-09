@@ -1,18 +1,18 @@
-import datetime, os
-
-class AppRenderer:
+import os
+from datetime import datetime
+from typing import List, Dict, Any
+class ProcessRenderer:
     # Responsible for rendering processes to the terminal.
     def __init__(self):
         self.header_format = "{:<8} {:<25} {:<10} {:<15}"
-        self.row_format = "{:<8} {:<25} {:<10.2f} {:<15.2f}"
+        self.row_format = "{:<8} {:<25} {:<10.2} {:<15.2}"
 
     def clear_screen(self):
         # Clear the terminal screen
         os.system('cls' if os.name== 'nt' else 'clear')
 
-    def render_processes(self, processes: list[dict]):
+    def render_processes(self, processes: List[Dict[str, Any]]):
         # Render the list
-
 
         self.clear_screen() # Clear Screen 
 
@@ -25,14 +25,14 @@ class AppRenderer:
         
         for app in processes[:50]:
             # format usage time as Hours:Minutes:Seconds
-            usage_time_str = f"{app['usage_time']//3600}h:{(app['usage_time']%3600)//60}m:{app['usage_time']%60}s" 
+            running_time_str = f"{app['running_time']//3600}h:{(app['running_time']%3600)//60}m:{app['running_time']%60}s" 
             
             # Print Rows
             print(self.row_format.format(
                 app['pid'],
                 app['name'],
                 app['username'],
-                usage_time_str
+                running_time_str
             ))
     
                 
