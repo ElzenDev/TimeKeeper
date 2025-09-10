@@ -23,11 +23,13 @@ class ProcessFilter:
 
             ## Filter out system processes in the list, processes with very short names and processes running under system accounts
             if process_name in self.system_processes or len(process_name) <3 or 'service' in process_name.lower() or user_name in ['SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE', None]:
-                process_category = 'windows_process'
+                process_category = 'system_process'
+                continue
             
-            # Filter out processes running from Windows directories
+            # Filter out processes running from system directories
             if exe and ('Windows' in exe or 'System32' in exe or 'SysWOW64' in exe or 'EdgeWebView' in exe):
                 process_category = 'windows_process'
+                continue
 
             # Filter processes that aren't in typical directories for user-installed apps
             current_user = os.getenv('USERNAME', '').lower()
@@ -38,6 +40,7 @@ class ProcessFilter:
                 if process_parent:
                     print("Process Parent:", process_parent.name())
                     process_category = 'background_process'
+                    continue
 
                 process_children = psutil.Process(pid).children()
                 if process_children:

@@ -13,7 +13,7 @@ class ProcessCollector:
                     'name': proc.info['name'],
                     'username': proc.info['username'],
                     'create_time': proc.info['create_time'],
-                    'running_time': int(time.time() - proc.info['create_time']),  # Calculate the time the app has been running, for in seconds
+                    'running_time':int(time.time() - proc.info['create_time']),  # Calculate the time the app has been running, for in seconds
                     'path': proc.info['exe'],
                     'cpu_usage': proc.info['cpu_percent'],
                     'memory_info': proc.info['memory_info']

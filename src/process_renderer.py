@@ -4,8 +4,8 @@ from typing import List, Dict, Any
 class ProcessRenderer:
     # Responsible for rendering processes to the terminal.
     def __init__(self):
-        self.header_format = "{:<8} {:<25} {:<10} {:<15}"
-        self.row_format = "{:<8} {:<25} {:<10.2} {:<15.2}"
+        self.header_format = "{:<8} {:<25} {:<10} {:<20}"
+        self.row_format = "{:<8} {:<25} {:<10} {:<20}"
 
     def clear_screen(self):
         # Clear the terminal screen
