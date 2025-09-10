@@ -24,7 +24,7 @@
     - [ ] Differentiate between background and active processes
     - [ ] Set up SqLite db
 
-## 2025-09-08 - *Architure Refactoring*
+## 2025-09-08 - *Architecture Refactoring*
 - [x] Done
     - [x] Switch the functions to their own class
     - [x] Differentiate between background and active processes
@@ -34,11 +34,25 @@
     - [ ] Set up SqLite db
     - [ ] Refine Filter
 
-### Lerning Goals
-- To Read 
-    - Design Patterns: elements of reusable object-oriented software
-    - Clean Code: A Handbook of Agile Software Craftsmanship
-    - Clean Architecture: A Craftsman's Guide to Software Structure and Design: A Craftsman's Guide to Software Structure and Design
-- To Research
-    - SOLID
-    - Python Design Patterns
+- ### Lerning Goals
+    - To Read 
+        - Design Patterns: elements of reusable object-oriented software
+        - Clean Code: A Handbook of Agile Software Craftsmanship
+        - Clean Architecture: A Craftsman's Guide to Software Structure and Design: A Craftsman's Guide to Software Structure and Design
+    - To Research
+        - SOLID
+        - Python Design Patterns
+
+## 2025-09-10 - *Architecture Refactoring*
+- [x] Done
+    - [x] Complete the Architecture Refactoring
+    - [x] Refine Filter
+- [ ] To_do
+    - [ ] Set up SqLite db
+    
+- ### Lerning Goals
+    - To Read 
+        - The Pragmatic Programmer
+    - To Research
+        - SQlite
+        - Window Enumeration on Linux / MacOS

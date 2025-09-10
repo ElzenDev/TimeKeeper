@@ -1,4 +1,7 @@
-import psutil, os
+import psutil
+import os
+import win32gui, win32process, win32con
+
 from typing import List, Dict, Any
 
 class ProcessFilter:
@@ -10,6 +13,38 @@ class ProcessFilter:
                     'ApplicationFrameHost.exe0','winlogon.exe', 'fontdrvhost.exe', 'WmiPrvSE.exe', 'SecurityHealthService.exe'
                     ,'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe', 'esrv.exe']
     
+    def has_window(self, pid: int) -> bool:
+        """
+        Check if a procces has a window based on it's PID.
+        Receives an Integer (PID) and returns a boolean (has_window)
+
+        pid: int
+        """
+        has_window: bool = False
+        try:
+            def callback(hwnd, lparam):
+                nonlocal has_window
+                # check if window is enabled
+                if win32gui.IsWindowEnabled(hwnd):
+                    try:
+                        lparam, found_pid = win32process.GetWindowThreadProcessId(hwnd)
+                        # Check if is the main window
+                        if found_pid == pid:
+                            if (win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & win32con.WS_CAPTION and win32gui.GetWindowTextLength(hwnd) > 0):
+                                has_window = True
+                                return False
+                    except:
+                        pass
+                return True
+                
+            win32gui.EnumWindows(callback, 0)
+            return has_window
+        
+        except Exception as e:
+            print(f"Error enumerating windows: {e}")
+
+    
+
     def filter_for_apps(self, processes:List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         apps_list = []
 
@@ -34,19 +69,23 @@ class ProcessFilter:
             # Filter processes that aren't in typical directories for user-installed apps
             current_user = os.getenv('USERNAME', '').lower()
             if user_name and (current_user in user_name or exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe)):
+                process_category = 'user_app'
                 
-                # Check if the process has a parent or children processes
-                process_parent = psutil.Process(pid).parent()
-                if process_parent:
-                    print("Process Parent:", process_parent.name())
-                    process_category = 'background_process'
-                    continue
-
-                process_children = psutil.Process(pid).children()
-                if process_children:
-                    print(f"User App Found: {process_name} by {user_name} at {exe}")
+                
+            #Filter out processes with parents ( child processes )               
+            if psutil.Process(pid).parent() :
+                # Checks for windows
+               if self.has_window(pid):
                     process_category = 'user_app'
-
+                    
+               else:
+                   process_category = 'background_process'
+                   continue
+            else:
+                print(f"User App Found: {process_name} at {exe}")
+                process_category = "user_app"
+            
+           
             # Append the process to proceeses's list if it is classified as an app
             if process_category == 'user_app': apps_list.append(proc)
         return apps_list
