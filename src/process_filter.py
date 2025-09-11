@@ -73,19 +73,16 @@ class ProcessFilter:
                 
                 
             #Filter out processes with parents ( child processes )               
-            if psutil.Process(pid).parent() :
+            if psutil.Process(pid).parent() == False or self.has_window(pid) :
                 # Checks for windows
-               if self.has_window(pid):
-                    process_category = 'user_app'
-                    
-               else:
-                   process_category = 'background_process'
-                   continue
-            else:
+                process_category = 'user_app'
                 print(f"User App Found: {process_name} at {exe}")
                 process_category = "user_app"
-            
+                    
+            else:
+                process_category = 'background_process'
+                continue
            
             # Append the process to proceeses's list if it is classified as an app
-            if process_category == 'user_app': apps_list.append(proc)
+            if 'processs' not in process_category: apps_list.append(proc)
         return apps_list
