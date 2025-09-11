@@ -11,7 +11,9 @@ env/
 data/*.db
 logs/
 *.log
+.vscode
 
 # OS
 .DS_Store
 Thumbs.db
+

@@ -56,3 +56,12 @@
     - To Research
         - SQlite
         - Window Enumeration on Linux / MacOS
+
+## 2025-09-11 - *Setup Database*
+- [x] Done
+    - [x] Plan New APP flow
+    - [x] Set up Sqlite db
+- [ ] To_do
+    - [ ] Integrate Database with the app main cycle
+    - [ ] Make app more user-interactive
+    

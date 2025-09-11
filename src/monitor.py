@@ -1,4 +1,4 @@
-import time
+import time, os
 import logging
 
 """
@@ -46,21 +46,32 @@ class ProcessesMonitor:
             # Get all the running Processes
             processes = self.collector.get_running_processes()
 
+            #Sync Processes with the database
+
             # Filter out Background Processes and System Processes
-            processes = self.filter.filter_for_apps(processes)
+            filtered_processes = self.filter.filter_for_apps(processes)
+            
+            #Sort Processes
+            sorted_processes = self.sorter.sort_by_running_time(filtered_processes,True)
 
             # Render the processes sorted by how long they've been running
-            self.renderer.render_processes(self.sorter.sort_by_running_time(processes,True))
+            self.renderer.render_processes(sorted_processes)
 
             time.sleep(self.check_interval)
         
 
 def main():
-    print("Starting TimeKeeper..")
-    print("Press Ctrl+C to stop")
+    print("ITS TIMEKEEPER TIME \n WHAT DO YOU WANT TO DO")
+    order: str = input("\n [1] - Run TimeKeeper\n : ")
+    if order == "1":
+        print("Starting TimeKeeper..")
+        print("Press Ctrl+C to stop")
 
-    monitor = ProcessesMonitor(check_interval=30)
-    monitor.start_monitoring()
+        monitor = ProcessesMonitor(check_interval=30)
+        monitor.start_monitoring()
+    else: 
+        os.system('cls' if os.name == 'nt' else 'clear')
+        main()
 
 if __name__ == "__main__":
         main()
