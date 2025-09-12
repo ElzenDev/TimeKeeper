@@ -10,6 +10,7 @@ from process_collector import ProcessCollector
 from process_filter import ProcessFilter
 from process_sorter import ProcessSorter
 from process_renderer import ProcessRenderer
+from database import Database
 
 class ProcessesMonitor:
     def __init__(self, check_interval: int = 60): ## Initialize with a default check interval of a minute
@@ -21,6 +22,7 @@ class ProcessesMonitor:
         self.filter = ProcessFilter()
         self.sorter = ProcessSorter()
         self.renderer = ProcessRenderer()
+        self.database = Database()
         
     def start_monitoring(self):
         print("Starting system monitor...")
@@ -47,7 +49,8 @@ class ProcessesMonitor:
             processes = self.collector.get_running_processes()
 
             #Sync Processes with the database
-
+            self.database.sync_processes(processes)
+            
             # Filter out Background Processes and System Processes
             filtered_processes = self.filter.filter_for_apps(processes)
             
@@ -61,17 +64,11 @@ class ProcessesMonitor:
         
 
 def main():
-    print("ITS TIMEKEEPER TIME \n WHAT DO YOU WANT TO DO")
-    order: str = input("\n [1] - Run TimeKeeper\n : ")
-    if order == "1":
-        print("Starting TimeKeeper..")
-        print("Press Ctrl+C to stop")
+    print("Starting TimeKeeper..")
+    print("Press Ctrl+C to stop")
 
-        monitor = ProcessesMonitor(check_interval=30)
-        monitor.start_monitoring()
-    else: 
-        os.system('cls' if os.name == 'nt' else 'clear')
-        main()
+    monitor = ProcessesMonitor(check_interval=30)
+    monitor.start_monitoring()
 
 if __name__ == "__main__":
         main()

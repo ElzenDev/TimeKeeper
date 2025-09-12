@@ -27,13 +27,16 @@ class ProcessRenderer:
             # format usage time as Hours:Minutes:Seconds
             running_time_str = f"{app['running_time']//3600}h:{(app['running_time']%3600)//60}m:{app['running_time']%60}s" 
             username:str = app['username']
+            name:str = app['name']
             
             if username.split('\\'):
                 reduced_username = username.split('\\')[1]
+            if name.split('.'):
+                name = name.split('.')[0]
             # Print Rows
             print(self.row_format.format(
                 app['pid'],
-                app['name'],
+                name,
                 running_time_str,
                 reduced_username if reduced_username else username
             ))
