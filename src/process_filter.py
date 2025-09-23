@@ -29,12 +29,11 @@ class ProcessFilter:
                     try:
                         lparam, found_pid = win32process.GetWindowThreadProcessId(hwnd)
                         # Check if is the main window
-                        if found_pid == pid:
-                            if (win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & win32con.WS_CAPTION and win32gui.GetWindowTextLength(hwnd) > 0):
-                                has_window = True
-                                return False
+                        if found_pid == pid and (win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & win32con.WS_CAPTION and win32gui.GetWindowTextLength(hwnd) > 0):
+                            has_window = True
+                            return False
                     except:
-                        pass
+                        print('passed')
                 return True
                 
             win32gui.EnumWindows(callback, 0)
@@ -70,21 +69,16 @@ class ProcessFilter:
             current_user = os.getenv('USERNAME', '').lower()
             if user_name and (current_user in user_name or exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe)):
                 process_category = 'user_app'
-                
-                
-            #Filter out processes with parents ( child processes )               
-            if psutil.Process(pid).parent() :
-                # Checks for windows
-               if self.has_window(pid):
-                    process_category = 'user_app'
-                    
-               else:
-                   process_category = 'background_process'
-                   continue
+
+
+            #Filter Processes without a window and those with parent processes and no children ones (child processes that are not parent one as well)  
+            if self.has_window(pid) == False or (psutil.Process(pid).parent() and psutil.Process(pid).children == False):
+                process_category = 'background_process'
+                continue
             else:
                 print(f"User App Found: {process_name} at {exe}")
-                process_category = "user_app"
-            
+                process_category = 'user_app'
+                
            
             # Append the process to proceeses's list if it is classified as an app
             if process_category == 'user_app': apps_list.append(proc)

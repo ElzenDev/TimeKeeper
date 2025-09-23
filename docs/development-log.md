@@ -64,4 +64,18 @@
 - [ ] To_do
     - [ ] Integrate Database with the app main cycle
     - [ ] Make app more user-interactive
+
+---
+## Break for exam
+---
+
+## 2025-09-23 - *Integrate Database*
+- [x] Done
+    - [x] Integrate Database with the app main life cycle
+    - [x] Refactorated filter logic
+- [ ] To_do
+    - [ ] Integrate the database with the filter
+    - [ ] Refactor filter logic - add more filters
+- [ ] Descarted (for now)
+    - [x] Make app more user-interactive
     
