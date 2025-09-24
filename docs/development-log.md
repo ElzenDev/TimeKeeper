@@ -78,4 +78,12 @@
     - [ ] Refactor filter logic - add more filters
 - [ ] Descarted (for now)
     - [x] Make app more user-interactive
+
+## 2025-09-23 - *Upgrade Database*
+- [x] Done
+    - [x] Add a get_running_time by month method
+    - [x] Add a get_running_time by week method
+- [ ] To_do
+    - [ ] Integrate the database with the filter
+    - [ ] Refactor filter logic - add more filters or change it to classifier instead
     
