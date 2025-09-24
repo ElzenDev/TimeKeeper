@@ -7,8 +7,10 @@ __pycache__/
 venv/
 env/
 
-# Project specific
+# Databse
 data/*.db
+
+# Project specific
 logs/
 *.log
 .vscode
