@@ -24,6 +24,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS processes(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
+                    category TEXT,
                     username TEXT,
                     first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -35,6 +36,7 @@ class Database:
                     process_session_id INTEGER REFERENCES processes(id),
                     pid INTEGER NOT NULL,
                     name TEXT,
+                    category TEXT,
                     username TEXT,
                     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     end_time TIMESTAMP NULL,
@@ -47,6 +49,7 @@ class Database:
             )
             
             conn.commit()
+
 
     def sync_processes(self, current_processes: List[Dict[str, Any]]) -> None:
         """ 
@@ -89,17 +92,18 @@ class Database:
                 if not exists:
                     
                     # New Process, so, create process entry
-                    process_session_id = self.get_or_create_process(conn, name, now)
+                    process_session_id = self.get_or_create_process(conn, proc, now)
 
                     # Create new session
                     cursor.execute("""
                         INSERT INTO process_sessions
-                        (process_session_id, pid, name, username, start_time, last_seen)
-                        VALUES(?, ?, ?, ?, ?, ?)
+                        (process_session_id, pid, name, category, username, start_time, last_seen)
+                        VALUES(?, ?, ?, ?, ?, ?, ?)
                     """, (
                         process_session_id,
                         pid,
                         name,
+                        proc['category'],
                         proc['username'],
                         now, # Start_time/ First_seen = now (when it is first detected)
                         now # Last Seen
@@ -160,14 +164,14 @@ class Database:
             conn.commit()
 
 
-    def get_or_create_process(self, conn: sqlite3.Connection, name: str, now: datetime) -> int:
+    def get_or_create_process(self, conn: sqlite3.Connection, proc: Dict, now: datetime) -> int:
         """Get existing process ID or create new process entry."""
         with conn as conn:
             cursor = conn.cursor()
 
             result = cursor.execute("""
                 SELECT id FROM processes WHERE name = ?
-            """, (name,)).fetchone()
+            """, (proc['name'],)).fetchone()
 
             if result:
                 # Update if process was already seen
@@ -179,18 +183,19 @@ class Database:
                 conn.commit()
                 return result[0]
             else:
-                print(" handled_new_process")
+                
                 # Create new procees entry
                 cursor = cursor.execute(
                     """
-                    INSERT INTO processes (name, first_seen, last_seen)
-                    VALUES (?, ?, ?)
-                    """, (name, now, now)
+                    INSERT INTO processes (name, category, username, first_seen, last_seen)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,(proc['name'], proc['category'], proc['username'], now, now)
                 )
                 
                 conn.commit()
                 return cursor.lastrowid
         
+
     def get_today_running_time(self) -> List[Dict]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -220,6 +225,7 @@ class Database:
             conn.commit()
             return[{'name': row['name'], 'total_minutes': row['total_minutes'] or 0 } for row in results]
    
+
     def get_week_running_time(self) -> List[Dict]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -245,6 +251,7 @@ class Database:
             conn.commit()
 
             return [{'name': row['name'], 'total_minutes': row['total_minutes'] or 0 } for row in results]
+
 
     def get_month_running_time(self) -> List[Dict]:
         with sqlite3.connect(self.db_path) as conn:

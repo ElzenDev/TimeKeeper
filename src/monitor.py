@@ -7,6 +7,7 @@ Main App Monitor logic
 
 # Import the classes
 from process_collector import ProcessCollector
+from process_categorizer import ProcessCategorizer
 from process_filter import ProcessFilter
 from process_sorter import ProcessSorter
 from process_renderer import ProcessRenderer
@@ -19,6 +20,7 @@ class ProcessesMonitor:
 
         # Data Injection
         self.collector = ProcessCollector()
+        self.categorizer = ProcessCategorizer()
         self.filter = ProcessFilter()
         self.sorter = ProcessSorter()
         self.renderer = ProcessRenderer()
@@ -47,7 +49,8 @@ class ProcessesMonitor:
 
             # Get all the running Processes
             processes = self.collector.get_running_processes()
-
+            self.categorizer.categorize(processes)
+            
             #Sync Processes with the database
             self.database.sync_processes(processes)
             

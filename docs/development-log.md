@@ -85,5 +85,15 @@
     - [x] Add a get_running_time by week method
 - [ ] To_do
     - [ ] Integrate the database with the filter
-    - [ ] Refactor filter logic - add more filters or change it to classifier instead
+    - [ ] Refactor filter logic - add more filters or change it to categorizer instead
+
+## 2025-09-24 - *Categorizer*
+- [x] Done
+    - [x] Add a ProcesssCategorizer class
+    - [x] Refactor ProcessFilter class
+    - [x] Refactor Database class 
+- [ ] To_do
+    - [ ] Add a ProcessEnricher class
+        > It will work as a way to start using the running time of the databse instead of now-create_time
+    - [ ] Plan about UX (CLI - for now)
     
