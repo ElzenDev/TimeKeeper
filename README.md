@@ -1,10 +1,10 @@
 # TimeKeeper
-A Python desktop application that tracks your computer's apps usage
+A Python process's running time tracker
 
 ## Current Features
 - [x] Dectect running processes
--  [x] Track usage Duration
-- [ ] Store data in SQLite
+- [x] Track usage Duration
+- [x] Store data in SQLite
 
 ## Quick Start
 1. Clone this repo
