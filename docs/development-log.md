@@ -56,3 +56,44 @@
     - To Research
         - SQlite
         - Window Enumeration on Linux / MacOS
+
+## 2025-09-11 - *Setup Database*
+- [x] Done
+    - [x] Plan New APP flow
+    - [x] Set up Sqlite db
+- [ ] To_do
+    - [ ] Integrate Database with the app main cycle
+    - [ ] Make app more user-interactive
+
+---
+## Break for exam
+---
+
+## 2025-09-23 - *Integrate Database*
+- [x] Done
+    - [x] Integrate Database with the app main life cycle
+    - [x] Refactorated filter logic
+- [ ] To_do
+    - [ ] Integrate the database with the filter
+    - [ ] Refactor filter logic - add more filters
+- [ ] Descarted (for now)
+    - [x] Make app more user-interactive
+
+## 2025-09-23 - *Upgrade Database*
+- [x] Done
+    - [x] Add a get_running_time by month method
+    - [x] Add a get_running_time by week method
+- [ ] To_do
+    - [ ] Integrate the database with the filter
+    - [ ] Refactor filter logic - add more filters or change it to categorizer instead
+
+## 2025-09-24 - *Categorizer*
+- [x] Done
+    - [x] Add a ProcesssCategorizer class
+    - [x] Refactor ProcessFilter class
+    - [x] Refactor Database class 
+- [ ] To_do
+    - [ ] Add a ProcessEnricher class
+        > It will work as a way to start using the running time of the databse instead of now-create_time
+    - [ ] Plan about UX (CLI - for now)
+    

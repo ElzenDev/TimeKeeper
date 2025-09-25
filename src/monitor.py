@@ -1,4 +1,4 @@
-import time
+import time, os
 import logging
 
 """
@@ -7,9 +7,11 @@ Main App Monitor logic
 
 # Import the classes
 from process_collector import ProcessCollector
+from process_categorizer import ProcessCategorizer
 from process_filter import ProcessFilter
 from process_sorter import ProcessSorter
 from process_renderer import ProcessRenderer
+from database import Database
 
 class ProcessesMonitor:
     def __init__(self, check_interval: int = 60): ## Initialize with a default check interval of a minute
@@ -18,9 +20,11 @@ class ProcessesMonitor:
 
         # Data Injection
         self.collector = ProcessCollector()
+        self.categorizer = ProcessCategorizer()
         self.filter = ProcessFilter()
         self.sorter = ProcessSorter()
         self.renderer = ProcessRenderer()
+        self.database = Database()
         
     def start_monitoring(self):
         print("Starting system monitor...")
@@ -45,12 +49,19 @@ class ProcessesMonitor:
 
             # Get all the running Processes
             processes = self.collector.get_running_processes()
-
+            self.categorizer.categorize(processes)
+            
+            #Sync Processes with the database
+            self.database.sync_processes(processes)
+            
             # Filter out Background Processes and System Processes
-            processes = self.filter.filter_for_apps(processes)
+            filtered_processes = self.filter.filter_for_apps(processes)
+            
+            #Sort Processes
+            sorted_processes = self.sorter.sort_by_running_time(filtered_processes,True)
 
             # Render the processes sorted by how long they've been running
-            self.renderer.render_processes(self.sorter.sort_by_running_time(processes,True))
+            self.renderer.render_processes(sorted_processes)
 
             time.sleep(self.check_interval)
         
