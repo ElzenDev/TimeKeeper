@@ -7,11 +7,13 @@ Main App Monitor logic
 
 # Import the classes
 from process_collector import ProcessCollector
+from database import Database
 from process_categorizer import ProcessCategorizer
+from process_enricher import ProcessEnricher
 from process_filter import ProcessFilter
 from process_sorter import ProcessSorter
 from process_renderer import ProcessRenderer
-from database import Database
+
 
 class ProcessesMonitor:
     def __init__(self, check_interval: int = 60): ## Initialize with a default check interval of a minute
@@ -21,10 +23,12 @@ class ProcessesMonitor:
         # Data Injection
         self.collector = ProcessCollector()
         self.categorizer = ProcessCategorizer()
+        self.database = Database()
+        self.enricher = ProcessEnricher(self.database)
         self.filter = ProcessFilter()
         self.sorter = ProcessSorter()
         self.renderer = ProcessRenderer()
-        self.database = Database()
+        
         
     def start_monitoring(self):
         print("Starting system monitor...")
@@ -54,8 +58,11 @@ class ProcessesMonitor:
             #Sync Processes with the database
             self.database.sync_processes(processes)
             
+            # Adds the today's running time for processes
+            enriched_processes = self.enricher.add_running_time(processes)
+            
             # Filter out Background Processes and System Processes
-            filtered_processes = self.filter.filter_for_apps(processes)
+            filtered_processes = self.filter.filter_for_apps(enriched_processes)
             
             #Sort Processes
             sorted_processes = self.sorter.sort_by_running_time(filtered_processes,True)

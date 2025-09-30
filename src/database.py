@@ -108,6 +108,7 @@ class Database:
                         now, # Start_time/ First_seen = now (when it is first detected)
                         now # Last Seen
                     ))
+                    print("New Process Handled")
             conn.commit()
             
 
@@ -209,12 +210,13 @@ class Database:
                         CASE
                             WHEN ps.end_time IS NULL THEN
                                 -- APP is still running : time = now - start
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time)) / 60.0
+                                (strftime('%S', 'now') - strftime('%S', ps.start_time))
+ 
                             ELSE
                                 -- APP is not running : time = end - start
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)) / 60.0
+                                (strftime('%S', ps.end_time) - strftime('%S', ps.start_time))
                         END
-                    ) as total_minutes
+                    ) as total_seconds
 
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
@@ -223,7 +225,7 @@ class Database:
                 """
             ).fetchall()
             conn.commit()
-            return[{'name': row['name'], 'total_minutes': row['total_minutes'] or 0 } for row in results]
+            return[{'name': row['name'], 'total_seconds': row['total_seconds'] or 0 } for row in results]
    
 
     def get_week_running_time(self) -> List[Dict]:
@@ -238,10 +240,10 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                            (strftime('%s', 'now') - strftime('%s', ps.start_time)) / 60.0
+                            (strftime('%S', 'now') - strftime('%S', ps.start_time)) / 60.0
                             ELSE
-                            (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)) / 60.0
-                    ) as total_minutes
+                            (strftime('%S', ps.end_time) - strftime('%S', ps.start_time)) / 60.0
+                    ) as total_seconds
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
                 WHERE WEEK (ps.start_time) = WEEK ('now')
@@ -250,7 +252,7 @@ class Database:
             ).fetchall()
             conn.commit()
 
-            return [{'name': row['name'], 'total_minutes': row['total_minutes'] or 0 } for row in results]
+            return [{'name': row['name'], 'total_seconds': row['total_seconds'] or 0 } for row in results]
 
 
     def get_month_running_time(self) -> List[Dict]:
@@ -265,11 +267,11 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time)) / 60.0
+                                (strftime('%S', 'now') - strftime('%S', ps.start_time))
                             ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)) / 60.0
+                                (strftime('%S', ps.end_time) - strftime('%S', ps.start_time))
                         END
-                    ) as total_minutes
+                    ) as total_seconds
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
                 WHERE MONTH (ps.start_time) = MONTH ('now')
@@ -278,4 +280,4 @@ class Database:
             ).fetchall()
             conn.commit()
 
-            return [{'name': row['name'], 'total_minutes': row['total_minutes'] or 0} for row in results]
+            return [{'name': row['name'], 'total_seconds': row['total_seconds'] or 0} for row in results]
