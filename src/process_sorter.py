@@ -1,12 +1,13 @@
 from typing import List, Dict, Any
 
 class ProcessSorter:
-    # Sort processes by different criteria
+    """ Sort processes by different criteria """
+    
     @staticmethod
     def sort_by_running_time(list: List[Dict[str, Any]], is_reverse: bool = True) -> List[Dict[str, Any]]:
 
         # Sort processes by how long they've been running
-        return sorted(list, key=lambda x: x.get('running_time', 0), reverse=is_reverse)
+        return sorted(list, key=lambda x: x.get('today_running_time', 0), reverse=is_reverse)
     
     @staticmethod
     def sort_by_cpu_usage(list: List[Dict[str, Any]], is_reverse: bool = True) -> List[Dict[str, Any]]:

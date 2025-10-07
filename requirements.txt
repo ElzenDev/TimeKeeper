@@ -1,2 +1,2 @@
 psutil>=7.0.0
-pywon32
+pywin32

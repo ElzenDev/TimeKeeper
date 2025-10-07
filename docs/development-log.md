@@ -94,6 +94,13 @@
     - [x] Refactor Database class 
 - [ ] To_do
     - [ ] Add a ProcessEnricher class
-        > It will work as a way to start using the running time of the databse instead of now-create_time
+        > It will work as a way to start using persistent running time data from the databse instead of now / create_time
     - [ ] Plan about UX (CLI - for now)
+
+## 2025-09-30 - *Enricher*
+- [x] Done
+    -[x] Add a ProccessEnricher
+    -[x] Modify ProcessSorter and ProcessRenderer classes to work along with the enriched_processes
+- [ ] To_do
+    - [ ] Add more time related consistent data related to running_time
     
