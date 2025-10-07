@@ -103,4 +103,16 @@
     -[x] Modify ProcessSorter and ProcessRenderer classes to work along with the enriched_processes
 - [ ] To_do
     - [ ] Add more time related consistent data related to running_time
+
+## 2025-10-07 - *Week And Month Running Time*
+- [x] Done
+    -[x] Add week and month running time to the ProcessEnricher
+    -[x] Modify ProcessRenderer to render the week and month running time
+- [ ] To_do
+    - [ ] Threading
+    - [ ] Add more time related consistent data related to running_time
+    - [ ] Refactor Monitor and ProcessRenderer
+    - [ ] Refactor the life cycle of the application
+        > Add More interative options like, See Running Processes, See Background Processes, See Apps, Sort Apss by - TodayRT, WeekRT, name, user, i.e
+
     
