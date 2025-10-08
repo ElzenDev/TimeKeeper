@@ -209,11 +209,8 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                -- APP is still running : time = now - start
                                 (strftime('%s', 'now') - strftime('%s', ps.start_time))
- 
                             ELSE
-                                -- APP is not running : time = end - start
                                 (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
                         END
                     ) as total_seconds
@@ -240,10 +237,10 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                            (strftime('%s', 'now') - strftime('%s', ps.start_time))
+                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
 
                             ELSE
-                            (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
+                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
                         END
                     ) as total_seconds
 

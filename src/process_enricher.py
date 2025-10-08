@@ -27,6 +27,7 @@ class ProcessEnricher():
             proc['week_running_time'] = week_lookup.get(name, 0.0)
             proc['month_running_time'] = month_lookup.get(name, 0.0)
             
+            
             enriched_processes.append(proc)
             
         return enriched_processes

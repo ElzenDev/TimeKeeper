@@ -1,11 +1,9 @@
 import time, os
 import logging
+import threading
+from typing import Optional
 
-"""
-Main App Monitor logic
-"""
-
-# Import the classes
+# Import the classes for data injection
 from process_collector import ProcessCollector
 from database import Database
 from process_categorizer import ProcessCategorizer
@@ -16,6 +14,11 @@ from process_renderer import ProcessRenderer
 
 
 class ProcessesMonitor:
+
+    """
+    Main App Monitor logic
+    """
+
     def __init__(self, check_interval: int = 60): ## Initialize with a default check interval of a minute
         self.is_running = False
         self.check_interval = check_interval
@@ -50,7 +53,8 @@ class ProcessesMonitor:
 
     def monitoring_loop(self):
         while self.is_running:
-
+            
+            ##  Background Thread--------------------------
             # Get all the running Processes
             processes = self.collector.get_running_processes()
             self.categorizer.categorize(processes)
@@ -58,6 +62,9 @@ class ProcessesMonitor:
             #Sync Processes with the database
             self.database.sync_processes(processes)
             
+            ## ----------------------------
+
+
             # Adds the today's running time for processes
             enriched_processes = self.enricher.add_running_time(processes)
             
