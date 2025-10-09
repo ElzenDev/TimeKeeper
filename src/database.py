@@ -1,5 +1,5 @@
 import sqlite3, os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any
 
 class Database:
@@ -56,7 +56,7 @@ class Database:
         Syncs current running processes with the database.
         This is Called once every monitoring cycle
         """
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         current_pids = {proc['pid'] for proc in current_processes}
         with sqlite3.connect(self.db_path) as  conn:
             
@@ -108,7 +108,7 @@ class Database:
                         now, # Start_time/ First_seen = now (when it is first detected)
                         now # Last Seen
                     ))
-                    print("New Process Handled")
+                    print("New Process Session Handled")
             conn.commit()
             
 
@@ -217,7 +217,7 @@ class Database:
 
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE DATE (ps.start_time) = DATE('now')
+                WHERE strftime('%Y-%m-%d', ps.start_time) = strftime('%Y-%m-%d', 'now')
                 GROUP BY p.name
                 """
             ).fetchall()
@@ -267,9 +267,9 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
+                                MAX(0, (strftime('%s', 'now') - strftime('%s', ps.start_time)))
                             ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
+                                MAX(0, (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)))
                         END
                     ) as total_seconds
                 FROM processes p
