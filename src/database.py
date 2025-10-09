@@ -209,9 +209,12 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
+                                -- APP is still running : time = now - start
+                                (strftime('%S', 'now') - strftime('%S', ps.start_time))
+ 
                             ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
+                                -- APP is not running : time = end - start
+                                (strftime('%S', ps.end_time) - strftime('%S', ps.start_time))
                         END
                     ) as total_seconds
 
@@ -237,16 +240,13 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
-
+                            (strftime('%S', 'now') - strftime('%S', ps.start_time)) / 60.0
                             ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
-                        END
+                            (strftime('%S', ps.end_time) - strftime('%S', ps.start_time)) / 60.0
                     ) as total_seconds
-
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE strftime('%U', ps.start_time) = strftime('%U', 'now')
+                WHERE WEEK (ps.start_time) = WEEK ('now')
                 GROUP BY p.name
                 """
             ).fetchall()
@@ -267,14 +267,14 @@ class Database:
                     SUM(
                         CASE
                             WHEN ps.end_time IS NULL THEN
-                                MAX(0, (strftime('%s', 'now') - strftime('%s', ps.start_time)))
+                                (strftime('%S', 'now') - strftime('%S', ps.start_time))
                             ELSE
-                                MAX(0, (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)))
+                                (strftime('%S', ps.end_time) - strftime('%S', ps.start_time))
                         END
                     ) as total_seconds
                 FROM processes p
                 JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE strftime('%m', ps.start_time) = strftime('%m', 'now')
+                WHERE MONTH (ps.start_time) = MONTH ('now')
                 GROUP BY p.name
                 """
             ).fetchall()
