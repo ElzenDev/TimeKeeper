@@ -24,7 +24,6 @@ class Database:
                 CREATE TABLE IF NOT EXISTS processes(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
-                    category TEXT,
                     username TEXT,
                     first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -188,9 +187,9 @@ class Database:
                 # Create new procees entry
                 cursor = cursor.execute(
                     """
-                    INSERT INTO processes (name, category, username, first_seen, last_seen)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,(proc['name'], proc['category'], proc['username'], now, now)
+                    INSERT INTO processes (name, username, first_seen, last_seen)
+                    VALUES (?, ?, ?, ?)
+                    """,(proc['name'], proc['username'], now, now)
                 )
                 
                 conn.commit()
@@ -204,25 +203,40 @@ class Database:
             
             results = cursor.execute(
                 """
+                WITH process_windows AS (
+                    -- First, identify distinct time windows for each process name
+                    SELECT
+                        p.name,
+                        MIN(ps.start_time) as window_start,
+                        CASE 
+                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
+                            ELSE MAX(ps.end_time)
+                        END as window_end
+                    FROM processes p
+                    JOIN process_sessions ps ON p.id = ps.process_session_id
+                    WHERE date(ps.start_time, 'localtime') = date('now', 'localtime')
+                    GROUP BY 
+                        p.name,
+                        -- Group by hourly windows to handle cases where the app was closed and reopened
+                        strftime('%Y-%m-%d %H', ps.start_time)
+                ),
+                time_sums AS (
+                    SELECT
+                        name,
+                        ROUND(
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                        ) as session_seconds
+                    FROM process_windows
+                )
                 SELECT
-                    p.name,
-                    SUM(
-                        CASE
-                            WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
-                            ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
-                        END
-                    ) as total_seconds
-
-                FROM processes p
-                JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE strftime('%Y-%m-%d', ps.start_time) = strftime('%Y-%m-%d', 'now')
-                GROUP BY p.name
+                    name,
+                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
+                FROM time_sums
+                GROUP BY name
+                ORDER BY total_seconds DESC
                 """
             ).fetchall()
-            conn.commit()
-            return[{'name': row['name'], 'total_seconds': row['total_seconds'] or 0 } for row in results]
+            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]
    
 
     def get_week_running_time(self) -> List[Dict]:
@@ -232,27 +246,40 @@ class Database:
 
             results = cursor.execute(
                 """
-                SELECT 
-                    p.name,
-                    SUM(
-                        CASE
-                            WHEN ps.end_time IS NULL THEN
-                                (strftime('%s', 'now') - strftime('%s', ps.start_time))
-
-                            ELSE
-                                (strftime('%s', ps.end_time) - strftime('%s', ps.start_time))
-                        END
-                    ) as total_seconds
-
-                FROM processes p
-                JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE strftime('%U', ps.start_time) = strftime('%U', 'now')
-                GROUP BY p.name
+                WITH process_windows AS (
+                    -- First, identify distinct time windows for each process name
+                    SELECT
+                        p.name,
+                        MIN(ps.start_time) as window_start,
+                        CASE 
+                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
+                            ELSE MAX(ps.end_time)
+                        END as window_end
+                    FROM processes p
+                    JOIN process_sessions ps ON p.id = ps.process_session_id
+                    WHERE strftime('%Y-%W', ps.start_time, 'localtime') = strftime('%Y-%W', 'now', 'localtime')
+                    GROUP BY 
+                        p.name,
+                        -- Group by hourly windows to handle cases where the app was closed and reopened
+                        strftime('%Y-%m-%d %H', ps.start_time)
+                ),
+                time_sums AS (
+                    SELECT
+                        name,
+                        ROUND(
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                        ) as session_seconds
+                    FROM process_windows
+                )
+                SELECT
+                    name,
+                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
+                FROM time_sums
+                GROUP BY name
+                ORDER BY total_seconds DESC
                 """
             ).fetchall()
-            conn.commit()
-
-            return [{'name': row['name'], 'total_seconds': row['total_seconds'] or 0 } for row in results]
+            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]
 
 
     def get_month_running_time(self) -> List[Dict]:
@@ -262,22 +289,37 @@ class Database:
 
             results = cursor.execute(
                 """
+                WITH process_windows AS (
+                    -- First, identify distinct time windows for each process name
+                    SELECT
+                        p.name,
+                        MIN(ps.start_time) as window_start,
+                        CASE 
+                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
+                            ELSE MAX(ps.end_time)
+                        END as window_end
+                    FROM processes p
+                    JOIN process_sessions ps ON p.id = ps.process_session_id
+                    WHERE strftime('%Y-%m', ps.start_time, 'localtime') = strftime('%Y-%m', 'now', 'localtime')
+                    GROUP BY 
+                        p.name,
+                        -- Group by hourly windows to handle cases where the app was closed and reopened
+                        strftime('%Y-%m-%d %H', ps.start_time)
+                ),
+                time_sums AS (
+                    SELECT
+                        name,
+                        ROUND(
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                        ) as session_seconds
+                    FROM process_windows
+                )
                 SELECT
-                    p.name,
-                    SUM(
-                        CASE
-                            WHEN ps.end_time IS NULL THEN
-                                MAX(0, (strftime('%s', 'now') - strftime('%s', ps.start_time)))
-                            ELSE
-                                MAX(0, (strftime('%s', ps.end_time) - strftime('%s', ps.start_time)))
-                        END
-                    ) as total_seconds
-                FROM processes p
-                JOIN process_sessions ps ON p.id = ps.process_session_id
-                WHERE strftime('%m', ps.start_time) = strftime('%m', 'now')
-                GROUP BY p.name
+                    name,
+                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
+                FROM time_sums
+                GROUP BY name
+                ORDER BY total_seconds DESC
                 """
             ).fetchall()
-            conn.commit()
-
-            return [{'name': row['name'], 'total_seconds': row['total_seconds'] or 0} for row in results]
+            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]

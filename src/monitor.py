@@ -84,7 +84,7 @@ def main():
     print("Starting TimeKeeper..")
     print("Press Ctrl+C to stop")
 
-    monitor = ProcessesMonitor(check_interval=30)
+    monitor = ProcessesMonitor(check_interval=10)
     monitor.start_monitoring()
 
 if __name__ == "__main__":
