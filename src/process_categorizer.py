@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 import win32gui, win32process, win32con, psutil, os
+from process_window_checker import WindowChecker
 
 class ProcessCategorizer:
     def __init__(self):
@@ -11,33 +12,13 @@ class ProcessCategorizer:
                     ,'sppsvc.exe', 'audiodg.exe', 'SystemSettings.exe', 'esrv.exe']
     
     def has_window(self, pid: int) -> bool:
-        """
-        Check if a procces has a window and if it is the main one.
-        Receives an Integer (PID) and returns a boolean (has_window)
-
-        pid: int
-        """
-        has_window: bool = False
         try:
-            def callback(hwnd, lparam):
-                nonlocal has_window
-                # check if window is enabled
-                if win32gui.IsWindowEnabled(hwnd):
-                    try:
-                        lparam, found_pid = win32process.GetWindowThreadProcessId(hwnd)
-                        # Check if is the main window
-                        if found_pid == pid and (win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & win32con.WS_CAPTION and win32gui.GetWindowTextLength(hwnd) > 0):
-                            has_window = True
-                            return False
-                    except:
-                        pass
-                return True
-                
-            win32gui.EnumWindows(callback, 0)
-            return has_window
-        
+            checker = WindowChecker(pid)
+            win32gui.EnumWindows(checker.check_window, 0)
+            return checker.found_window
         except Exception as e:
             print(f"Error enumerating windows: {e}")
+            return False
 
     def categorize(self, processes: List[Dict[str, Any]]) -> None:
         
@@ -63,10 +44,12 @@ class ProcessCategorizer:
 
 
             #Filter Processes without a window and those with parent processes and no children ones (child processes that are not parent one as well)  
-            if self.has_window(pid) == False or (psutil.Process(pid).parent() and psutil.Process(pid).children == False):
-                proc['category'] = 'background_process'
+            if self.has_window(pid):
+                proc['category'] = 'user_app'
                 continue
+            
             else:
                 # print(f"User App Found: {process_name} at {exe}")
-                proc['category'] = 'user_app'
+                proc['category'] = 'background_process'
+                continue
 

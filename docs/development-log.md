@@ -115,4 +115,12 @@
     - [ ] Refactor the life cycle of the application
         > Add More interative options like, See Running Processes, See Background Processes, See Apps, Sort Apss by - TodayRT, WeekRT, name, user, i.e
 
-    
+## 2025-10-22 - *Major Categorizer Update*
+- [x] Done
+    -[x] Updated process_categorizer
+    -[x] Created a process_window_checker for better responsability distribuiton
+- [ ] To_do (*Everything from last time*)
+    - [ ] Threading
+    - [ ] Add more time related consistent data related to running_time
+    - [ ] Refactor Monitor and ProcessRenderer
+    - [ ] Refactor the life cycle of the application

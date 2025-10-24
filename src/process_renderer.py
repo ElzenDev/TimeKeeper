@@ -16,15 +16,17 @@ class ProcessRenderer:
         """
 
         self.clear_screen()
-
         # Just to make sure  :) xd
         self.clear_screen()
 
+        
+
+
         print(f"found {len(processes)} apps running  [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
-        print("-" * 100)
+        print("-" * 120)
         # Print Header
         print(self.header_format.format("PID", "Name", "TODAY_RUNNING_TIME", "WEEK_RUNNING_TIME","MONTH_RUNNING_TIME"," User"))
-        print("-" * 100)
+        print("-" * 120)
 
         
         for app in processes[:50]:

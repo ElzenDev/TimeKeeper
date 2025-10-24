@@ -1,7 +1,9 @@
 from typing import List, Dict, Any
 from database import Database
+
+
 class ProcessEnricher():
-    """ Responsable for Enriching current processes with persistent database's data"""
+    """ Responsable for Enriching current processes with more/better data"""
 
     def __init__(self, database: Database):
         self.database = database
