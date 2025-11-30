@@ -224,7 +224,7 @@ class Database:
                     SELECT
                         name,
                         ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
                         ) as session_seconds
                     FROM process_windows
                 )
@@ -267,7 +267,7 @@ class Database:
                     SELECT
                         name,
                         ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
                         ) as session_seconds
                     FROM process_windows
                 )
@@ -310,7 +310,7 @@ class Database:
                     SELECT
                         name,
                         ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400
+                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
                         ) as session_seconds
                     FROM process_windows
                 )
