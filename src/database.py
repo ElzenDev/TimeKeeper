@@ -107,7 +107,7 @@ class Database:
                         now, # Start_time/ First_seen = now (when it is first detected)
                         now # Last Seen
                     ))
-                    print("New Process Session Handled")
+                    
             conn.commit()
             
 

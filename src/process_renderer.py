@@ -15,9 +15,9 @@ class ProcessRenderer:
         Renders processes on a table format 
         """
 
-        self.clear_screen()
+        #self.clear_screen()
         # Just to make sure  :) xd
-        self.clear_screen()
+        #self.clear_screen()
 
         
 

@@ -20,7 +20,8 @@ class ProcessEnricher():
         week_lookup = {stat['name']: stat['total_seconds'] for stat in weekly_stats}
         month_lookup = {stat['name'] : stat['total_seconds'] for stat in monthly_stats}
 
-
+         
+        print(f"Collected {len(processes)} processes from the system.")
         enriched_processes = []
         for proc in processes:
             name = proc['name']
