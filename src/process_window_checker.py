@@ -9,7 +9,7 @@ class WindowChecker:
 
     def check_window(self, hwnd, _):
         """Check if window belongs to target process and has the right characteristics"""
-        # If we already found a window, skip further enumeration
+        
         if self.found_window:
             return True
 
@@ -32,18 +32,18 @@ class WindowChecker:
                 self.found_window = True
                 self.window_handle = hwnd
                 self.window_title = window_title
-                print(f"Found window for PID {self.target_pid}: {window_title}")
-                # Continue enumeration instead of stopping
+                #print(f"Found window for PID {self.target_pid}: {window_title}")
+                
                 return True
 
         except Exception:
-            # Silently continue on any error
+           
             pass
         
         return True
 
     def get_result(self):
-        """Get the final result of the window check"""
+        
         if self.found_window:
             print(f"Final result: Found window. Handle: {self.window_handle}, Title: {self.window_title}")
         else:
@@ -51,5 +51,5 @@ class WindowChecker:
         return self.found_window
     
     def get_window_title(self):
-        """Get the title of the found window, if any"""
+       
         return self.window_title if self.found_window else None

@@ -8,6 +8,7 @@ class Database:
         script_dir = os.path.dirname(__file__)
         db_path = os.path.join(os.path.dirname(script_dir), "data" ,"processes.db") 
         self.db_path: str = db_path
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.initialize_database()
         
     def initialize_database(self):

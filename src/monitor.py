@@ -11,6 +11,8 @@ from process_filter import ProcessFilter
 from process_sorter import ProcessSorter
 from process_renderer import ProcessRenderer
 
+from tracker_thread import TrackerThread
+
 
 script_dir = os.path.dirname(__file__)
 log_path = os.path.join(os.path.dirname(script_dir), "docs" ,"monitor.log") 
@@ -35,6 +37,7 @@ class ProcessesMonitor:
         self.renderer = ProcessRenderer()
 
     def track(self):
+        
         logging.info("Track Started")
         ##  Background part--------------------------
         # Get all the running Processes
@@ -73,18 +76,22 @@ def main():
     print("Press Ctrl+C to stop")
 
     monitor = ProcessesMonitor()
+    tracker = TrackerThread(monitor, interval=2)
     if len(sys.argv) < 2:
-        print("Usage: python process_tracker.py [track|Report|]")
+        print("Usage: python monitor.py [Track|Stop|Report")
         return
     
     command = sys.argv[1].lower()
     if command == "track":
-        monitor.track()
+        tracker.run()
         return
+    elif command == "stop":
+        tracker.stop()
+        
     elif command == "report":
         monitor.report()
     elif command != "report":
-        print("Unknown command. Use 'track' to start monitoring or 'report' to print the data.")
+        print("Unknown command. Use 'track' to start monitoring, 'Stop' to stop monitoring or 'report' to print the data.")
         return
    
 

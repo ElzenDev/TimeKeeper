@@ -49,7 +49,7 @@ class ProcessCategorizer:
                 continue
             
             else:
-                # print(f"User App Found: {process_name} at {exe}")
+                #print(f"User App Found: {process_name} at {exe}")
                 proc['category'] = 'background_process'
                 continue
 

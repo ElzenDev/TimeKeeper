@@ -12,17 +12,17 @@ class ProcessSorter:
     @staticmethod
     def sort_by_cpu_usage(list: List[Dict[str, Any]], is_reverse: bool = True) -> List[Dict[str, Any]]:
 
-        # Sort processes by Cpu Usage
+        # Sort processes by Cpu Usage --Unused
         return sorted(list, key=lambda x: x.get('cpu_usage', 0), reverse=is_reverse)
 
     @staticmethod
     def sort_by_memmory_usage(list: List[Dict[str, Any]], is_reverse: bool = True) -> List[Dict[str, Any]]:
 
-        # Sort processes by Memmory usage
+        # Sort processes by Memmory usage --Unused
         return sorted(list, key=lambda x: x.get('memmory_info', {}).get('rss', 0), reverse=is_reverse) 
     
     @staticmethod
     def sort_by_name(list: List[Dict[str, Any]], is_reverse: bool = True) -> List[Dict[str, Any]]:
         
-        # Sort processes by Name in alphabetical order
+        # Sort processes by Name in alphabetical order --Unused
         return sorted(list, key=lambda x: x.get('name', '').lower(), reverse=is_reverse)
