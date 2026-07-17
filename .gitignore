@@ -14,7 +14,7 @@ data/*.db
 logs/
 *.log
 .vscode
-
+.pid
 # OS
 .DS_Store
 Thumbs.db
