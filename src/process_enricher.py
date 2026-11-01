@@ -1,12 +1,26 @@
 from typing import List, Dict, Any
 from database import Database
-
+import psutil
+import win32api
+from functools import lru_cache
 
 class ProcessEnricher():
     """ Responsable for Enriching current processes with more/better data"""
 
     def __init__(self, database: Database):
         self.database = database
+
+   
+
+    @lru_cache(maxsize=None)
+    def get_display_name(exe_path: str, fallback: str) -> str:
+        """Return the exe's FileDescription, or fallback if unavailable."""
+        try:
+            lang, codepage = win32api.GetFileVersionInfo(exe_path, '\\VarFileInfo\\Translation')[0]
+            key = f'\\StringFileInfo\\{lang:04X}{codepage:04X}\\FileDescription'
+            return win32api.GetFileVersionInfo(exe_path, key) or fallback
+        except Exception:
+            return fallback
 
     def add_running_time(self, processes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """ Add the running time from database to each process """

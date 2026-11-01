@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from typing import List, Dict, Any
 
 class Database:
+    _PERIOD_FILTERS = {
+    "today": "date(ps.start_time, 'localtime') = date('now', 'localtime')",
+    "week":  "strftime('%Y-%W', ps.start_time, 'localtime') = strftime('%Y-%W', 'now', 'localtime')",
+    "month": "strftime('%Y-%m', ps.start_time, 'localtime') = strftime('%Y-%m', 'now', 'localtime')",
+    }
 
     def __init__(self):
         script_dir = os.path.dirname(__file__)
@@ -25,6 +30,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS processes(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
+                    dysplay_name TEXT,
                     username TEXT,
                     first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -97,12 +103,13 @@ class Database:
                     # Create new session
                     cursor.execute("""
                         INSERT INTO process_sessions
-                        (process_session_id, pid, name, category, username, start_time, last_seen)
-                        VALUES(?, ?, ?, ?, ?, ?, ?)
+                        (process_session_id, pid, name, display_name, category, username, start_time, last_seen)
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
                         process_session_id,
                         pid,
                         name,
+                        proc['display_name'],
                         proc['category'],
                         proc['username'],
                         now, # Start_time/ First_seen = now (when it is first detected)
@@ -195,132 +202,69 @@ class Database:
                 
                 conn.commit()
                 return cursor.lastrowid
-        
+
+    def _get_running_time(self, period: str) -> List[Dict]:
+        where = self._PERIOD_FILTERS[period]
+        query = f"""
+            WITH sessions AS (
+                SELECT
+                    p.name AS name,
+                    julianday(ps.start_time) AS s,
+                    -- open sessions end at last_seen, so a stale row
+                    -- (monitor stopped) doesn't keep growing until 'now'
+                    julianday(COALESCE(ps.end_time, ps.last_seen)) AS e
+                FROM processes p
+                JOIN process_sessions ps ON p.id = ps.process_session_id
+                WHERE {where}
+            ),
+            ordered AS (
+                SELECT
+                    name, s, e,
+                    -- latest end among all earlier sessions of the same name
+                    MAX(e) OVER (
+                        PARTITION BY name ORDER BY s, e
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ) AS prev_max_end
+                FROM sessions
+            ),
+            flagged AS (
+                SELECT
+                    name, s, e,
+                    -- starts a new block if there's a gap before it
+                    CASE WHEN prev_max_end IS NULL OR s > prev_max_end THEN 1 ELSE 0 END AS new_block
+                FROM ordered
+            ),
+            blocks AS (
+                SELECT
+                    name, s, e,
+                    SUM(new_block) OVER (
+                        PARTITION BY name ORDER BY s, e
+                        ROWS UNBOUNDED PRECEDING
+                    ) AS block_id
+                FROM flagged
+            ),
+            merged AS (
+                SELECT name, MIN(s) AS block_start, MAX(e) AS block_end
+                FROM blocks
+                GROUP BY name, block_id
+            )
+            SELECT
+                name,
+                CAST(ROUND(SUM((block_end - block_start) * 86400)) AS INTEGER) AS total_seconds
+            FROM merged
+            GROUP BY name
+            ORDER BY total_seconds DESC
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(query).fetchall()
+        return [{'name': r['name'], 'total_seconds': r['total_seconds']} for r in rows]
 
     def get_today_running_time(self) -> List[Dict]:
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            results = cursor.execute(
-                """
-                WITH process_windows AS (
-                    -- First, identify distinct time windows for each process name
-                    SELECT
-                        p.name,
-                        MIN(ps.start_time) as window_start,
-                        CASE 
-                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
-                            ELSE MAX(ps.end_time)
-                        END as window_end
-                    FROM processes p
-                    JOIN process_sessions ps ON p.id = ps.process_session_id
-                    WHERE date(ps.start_time, 'localtime') = date('now', 'localtime')
-                    GROUP BY 
-                        p.name,
-                        -- Group by hourly windows to handle cases where the app was closed and reopened
-                        strftime('%Y-%m-%d %H', ps.start_time)
-                ),
-                time_sums AS (
-                    SELECT
-                        name,
-                        ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
-                        ) as session_seconds
-                    FROM process_windows
-                )
-                SELECT
-                    name,
-                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
-                FROM time_sums
-                GROUP BY name
-                ORDER BY total_seconds DESC
-                """
-            ).fetchall()
-            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]
-   
+        return self._get_running_time("today")
 
     def get_week_running_time(self) -> List[Dict]:
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-
-            results = cursor.execute(
-                """
-                WITH process_windows AS (
-                    -- First, identify distinct time windows for each process name
-                    SELECT
-                        p.name,
-                        MIN(ps.start_time) as window_start,
-                        CASE 
-                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
-                            ELSE MAX(ps.end_time)
-                        END as window_end
-                    FROM processes p
-                    JOIN process_sessions ps ON p.id = ps.process_session_id
-                    WHERE strftime('%Y-%W', ps.start_time, 'localtime') = strftime('%Y-%W', 'now', 'localtime')
-                    GROUP BY 
-                        p.name,
-                        -- Group by hourly windows to handle cases where the app was closed and reopened
-                        strftime('%Y-%m-%d %H', ps.start_time)
-                ),
-                time_sums AS (
-                    SELECT
-                        name,
-                        ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
-                        ) as session_seconds
-                    FROM process_windows
-                )
-                SELECT
-                    name,
-                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
-                FROM time_sums
-                GROUP BY name
-                ORDER BY total_seconds DESC
-                """
-            ).fetchall()
-            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]
-
+        return self._get_running_time("week")
 
     def get_month_running_time(self) -> List[Dict]:
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-
-            results = cursor.execute(
-                """
-                WITH process_windows AS (
-                    -- First, identify distinct time windows for each process name
-                    SELECT
-                        p.name,
-                        MIN(ps.start_time) as window_start,
-                        CASE 
-                            WHEN MAX(ps.end_time) IS NULL THEN 'now'
-                            ELSE MAX(ps.end_time)
-                        END as window_end
-                    FROM processes p
-                    JOIN process_sessions ps ON p.id = ps.process_session_id
-                    WHERE strftime('%Y-%m', ps.start_time, 'localtime') = strftime('%Y-%m', 'now', 'localtime')
-                    GROUP BY 
-                        p.name,
-                        -- Group by hourly windows to handle cases where the app was closed and reopened
-                        strftime('%Y-%m-%d %H', ps.start_time)
-                ),
-                time_sums AS (
-                    SELECT
-                        name,
-                        ROUND(
-                            (julianday(window_end, 'localtime') - julianday(window_start)) * 86400 - 3600
-                        ) as session_seconds
-                    FROM process_windows
-                )
-                SELECT
-                    name,
-                    CAST(COALESCE(SUM(session_seconds), 0) AS INTEGER) as total_seconds
-                FROM time_sums
-                GROUP BY name
-                ORDER BY total_seconds DESC
-                """
-            ).fetchall()
-            return [{'name': row['name'], 'total_seconds': row['total_seconds']} for row in results]
+        return self._get_running_time("month")

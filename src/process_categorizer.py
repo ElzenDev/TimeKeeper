@@ -42,7 +42,7 @@ class ProcessCategorizer:
             if user_name and (current_user in user_name or exe and ('appdata' in exe.lower() or 'users' in exe.lower() or 'Program Files' in exe or 'Program Files (x86)' in exe)):
                 proc['category'] = 'user_app'
 
-
+            
             #Filter Processes without a window and those with parent processes and no children ones (child processes that are not parent one as well)  
             if self.has_window(pid):
                 proc['category'] = 'user_app'
@@ -52,4 +52,4 @@ class ProcessCategorizer:
                 #print(f"User App Found: {process_name} at {exe}")
                 proc['category'] = 'background_process'
                 continue
-
+            

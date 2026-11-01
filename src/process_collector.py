@@ -1,5 +1,6 @@
 import psutil
 from typing import List, Dict, Any
+from process_enricher import ProcessEnricher
 class ProcessCollector:
     def get_running_processes(self) -> List[Dict[str, Any]]:
         processes: List = []
@@ -10,6 +11,7 @@ class ProcessCollector:
                 processes.append({
                     'pid': proc.info['pid'],
                     'name': proc.info['name'],
+                    'display_name': ProcessEnricher.get_display_name(proc.info['exe'], proc.info['name']) if proc.info['exe'] else proc.info['name'],
                     'username': proc.info['username'],
                     'create_time': proc.info['create_time'],
                     'category': '',

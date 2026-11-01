@@ -4,8 +4,8 @@ from typing import List, Dict, Any
 class ProcessRenderer:
     """Responsable for rendering processes on the terminal"""
     def __init__(self):
-        self.header_format = "{:<8} | {:<15} | {:<15} | {:<15}| {:<15}| {:<15}"
-        self.row_format = "{:<8} | {:<15} | {:<18} | {:<18}| {:<18}| {:<15}"
+        self.header_format = "{:<8} | {:<15} | {:<18} | {:<18} | {:<18}| {:<18}| {:<15}"
+        self.row_format = "{:<8} | {:<15} | {:<18} | {:<18} | {:<18}| {:<18}| {:<15}"
 
     def clear_screen(self):
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -25,7 +25,7 @@ class ProcessRenderer:
         print(f"found {len(processes)} apps running  [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
         print("-" * 120)
         # Print Header
-        print(self.header_format.format("PID", "Name", "TODAY_RUNNING_TIME", "WEEK_RUNNING_TIME","MONTH_RUNNING_TIME"," User"))
+        print(self.header_format.format("PID", "Exec_name", "Desrpt_name", "TODAY_RUNNING_TIME", "WEEK_RUNNING_TIME","MONTH_RUNNING_TIME"," User"))
         print("-" * 120)
 
         
@@ -51,6 +51,7 @@ class ProcessRenderer:
             print(self.row_format.format(
                 app['pid'],
                 name,
+                app['display_name'],
                 today_running_time_str,
                 week_running_time_str,
                 month_running_time_str,
